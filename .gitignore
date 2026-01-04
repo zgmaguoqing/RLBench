@@ -1,0 +1,57 @@
+# 数据文件（通常很大，不应该上传）
+data/
+checkpoints/
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.hdf5
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 日志文件
+*.log
+logs/
+
+# 临时文件
+*.tmp
+*.temp
+.DS_Store
+
+# Docker（保留 Dockerfile 和 docker-compose.yml，只忽略 .dockerignore）
+# Dockerfile 和 docker-compose.yml 应该被包含在仓库中
+
+# 大型软件包 - 使用 Git LFS 处理
+# 注意：如果文件超过 2GB，需要使用其他方案（如 GitLab 或外部存储）
+# software/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz
+
+# Git 仓库（子模块的 .git 目录）
+software/*/.git/
+
+# 其他压缩文件（但保留 Docker 需要的软件包）
+# *.zip
+# *.tar
+# *.tar.gz
+# *.tar.xz
+

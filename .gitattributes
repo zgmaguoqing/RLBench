@@ -1,0 +1,4 @@
+software/CoppeliaSim_Edu_V4_1_0_Ubuntu20_04.tar.xz filter=lfs diff=lfs merge=lfs -text
+software/PyRep/.git/objects/pack/*.pack filter=lfs diff=lfs merge=lfs -text
+*.tar.xz filter=lfs diff=lfs merge=lfs -text
+*.pack filter=lfs diff=lfs merge=lfs -text

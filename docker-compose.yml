@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  meshcat-server:
+    build: 
+      context: .
+      tags: ["meshcat-server:latest"]
+    container_name: meshcat-server
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      - ./data:/workspace/data
+      - ./checkpoints:/workspace/checkpoints
+      - ./software:/workspace/software
+    working_dir: /workspace/manipulate-anything
+    stdin_open: true
+    tty: true
+    privileged: true
+    command: "uv run meshcat-server"
+    network_mode: host
+
+  manipulate-anything:
+    build: 
+      context: .
+      tags: ["manipulate-anything:latest"]
+    container_name: manipulate-anything
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - DISPLAY=10.27.1.1:0.0  # 转发至mgt节点 即使无物理显示器也设置DISPLAY
+      - QT_QPA_PLATFORM=xcb #eglfs #offscreen
+      - QT_DEBUG_PLUGINS=1  # 可选：如果失败，开启调试查看详细原因
+    volumes:
+      - ./data:/workspace/data
+      - ./checkpoints:/workspace/checkpoints
+      - ./software:/workspace/software
+      - ./manipulate-anything:/workspace/main/manipulate-anything
+    working_dir: /workspace/main/manipulate-anything
+    stdin_open: true
+    tty: true
+    privileged: true
+    command: >
+      bash -c "uv run dataset_generator.py \
+      eval.checkpoint=/workspace/checkpoints/pick_and_place.pth \
+      eval.mask_thresh=0.0 \
+      eval.retract=0.20 \
+      rlbench.task_name=play_jenga"
+    network_mode: host
+
+  rlbench-trajectory:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: rlbench-trajectory
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - DISPLAY=:99
+      # - DISPLAY=${DISPLAY:-:0}
+      # - QT_QPA_PLATFORM=offscreen
+      - PYTHONPATH=/workspace/YARR:/workspace/manipulate-anything
+      # RLBench轨迹生成参数（可通过环境变量覆盖）
+      - RLBENCH_SAVE_PATH=${RLBENCH_SAVE_PATH:-/workspace/data/rlbench_trajectories}
+      - RLBENCH_TASKS=${RLBENCH_TASKS:-reach_target}
+      - RLBENCH_IMAGE_WIDTH=${RLBENCH_IMAGE_WIDTH:-128}
+      - RLBENCH_IMAGE_HEIGHT=${RLBENCH_IMAGE_HEIGHT:-128}
+      - RLBENCH_RENDERER=${RLBENCH_RENDERER:-opengl3}
+      - RLBENCH_PROCESSES=${RLBENCH_PROCESSES:-1}
+      - RLBENCH_EPISODES=${RLBENCH_EPISODES:-10}
+      - RLBENCH_VARIATIONS=${RLBENCH_VARIATIONS:--1}
+      - RLBENCH_ARM_MAX_VELOCITY=${RLBENCH_ARM_MAX_VELOCITY:-1.0}
+      - RLBENCH_ARM_MAX_ACCELERATION=${RLBENCH_ARM_MAX_ACCELERATION:-4.0}
+    volumes:
+      - ./data:/workspace/data
+      - ./checkpoints:/workspace/checkpoints
+      - ./software:/workspace/software
+      - ./RLBench:/workspace/RLBench
+      - ./manipulate-anything:/workspace/manipulate-anything
+    working_dir: /workspace/RLBench
+    stdin_open: true
+    tty: true
+    privileged: true
+    command:
+      - /bin/bash
+      - -c
+      - |
+        # 启动 Xvfb 虚拟显示器并验证
+        Xvfb :99 -screen 0 1024x768x24 -ac +extension GLX +render -noreset &
+        XVFB_PID=$!
+        # 等待 Xvfb 启动并验证
+        for i in {1..30}; do
+          if xdpyinfo -display :99 >/dev/null 2>&1; then
+            echo "Xvfb is ready on display :99"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "Xvfb failed to start after 30 attempts"
+            exit 1
+          fi
+          sleep 1
+        done
+        # 设置环境变量
+        export DISPLAY=:99
+        # 设置清理函数
+        cleanup() {
+          kill $XVFB_PID 2>/dev/null || true
+        }
+        trap cleanup EXIT
+        # 激活虚拟环境并运行 RLBench
+        source /.venv/bin/activate && 
+        python -m rlbench.dataset_generator \
+        --save_path "${RLBENCH_SAVE_PATH:-/workspace/data/rlbench_trajectories}" \
+        --tasks "${RLBENCH_TASKS:-play_jenga}" \
+        --image_size "${RLBENCH_IMAGE_WIDTH:-128}" "${RLBENCH_IMAGE_HEIGHT:-128}" \
+        --renderer "${RLBENCH_RENDERER:-opengl3}" \
+        --processes "${RLBENCH_PROCESSES:-1}" \
+        --episodes_per_task "${RLBENCH_EPISODES:-1}" \
+        --variations "${RLBENCH_VARIATIONS:-1}" \
+        --arm_max_velocity "${RLBENCH_ARM_MAX_VELOCITY:-1.0}" \
+        --arm_max_acceleration "${RLBENCH_ARM_MAX_ACCELERATION:-4.0}"
+    network_mode: host
