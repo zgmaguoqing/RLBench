@@ -1,55 +1,6 @@
 version: '3.8'
 
 services:
-  meshcat-server:
-    build: 
-      context: .
-      tags: ["meshcat-server:latest"]
-    container_name: meshcat-server
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-    volumes:
-      - ./data:/workspace/data
-      - ./checkpoints:/workspace/checkpoints
-      - ./software:/workspace/software
-    working_dir: /workspace/manipulate-anything
-    stdin_open: true
-    tty: true
-    privileged: true
-    command: "uv run meshcat-server"
-    network_mode: host
-
-  manipulate-anything:
-    build: 
-      context: .
-      tags: ["manipulate-anything:latest"]
-    container_name: manipulate-anything
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-      - DISPLAY=10.27.1.1:0.0  # 转发至mgt节点 即使无物理显示器也设置DISPLAY
-      - QT_QPA_PLATFORM=xcb #eglfs #offscreen
-      - QT_DEBUG_PLUGINS=1  # 可选：如果失败，开启调试查看详细原因
-    volumes:
-      - ./data:/workspace/data
-      - ./checkpoints:/workspace/checkpoints
-      - ./software:/workspace/software
-      - ./manipulate-anything:/workspace/main/manipulate-anything
-    working_dir: /workspace/main/manipulate-anything
-    stdin_open: true
-    tty: true
-    privileged: true
-    command: >
-      bash -c "uv run dataset_generator.py \
-      eval.checkpoint=/workspace/checkpoints/pick_and_place.pth \
-      eval.mask_thresh=0.0 \
-      eval.retract=0.20 \
-      rlbench.task_name=play_jenga"
-    network_mode: host
-
   rlbench-trajectory:
     build: 
       context: .
@@ -62,7 +13,6 @@ services:
       - DISPLAY=:99
       # - DISPLAY=${DISPLAY:-:0}
       # - QT_QPA_PLATFORM=offscreen
-      - PYTHONPATH=/workspace/YARR:/workspace/manipulate-anything
       # RLBench轨迹生成参数（可通过环境变量覆盖）
       - RLBENCH_SAVE_PATH=${RLBENCH_SAVE_PATH:-/workspace/data/rlbench_trajectories}
       - RLBENCH_TASKS=${RLBENCH_TASKS:-reach_target}
@@ -79,7 +29,6 @@ services:
       - ./checkpoints:/workspace/checkpoints
       - ./software:/workspace/software
       - ./RLBench:/workspace/RLBench
-      - ./manipulate-anything:/workspace/manipulate-anything
     working_dir: /workspace/RLBench
     stdin_open: true
     tty: true
