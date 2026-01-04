@@ -1,65 +1,64 @@
-# RLBench 轨迹生成项目
+# RLBench Trajectory Generation Project
 
-这是一个基于 Docker 的一键运行 RLBench 并生成成功轨迹的项目。
+This is a Docker-based one-click project for running RLBench and generating successful trajectories.
 
-## 功能特性
+## Features
 
-- 🐳 基于 Docker 的容器化部署
-- 🎮 支持 RLBench 任务轨迹生成
-- 🖥️ 集成 CoppeliaSim 仿真环境
-- 📦 包含所有必要的依赖和软件
+- 🐳 Docker-based containerized deployment
+- 🎮 Support for RLBench task trajectory generation
+- 🖥️ Integrated CoppeliaSim simulation environment
+- 📦 Includes all necessary dependencies and software
 
-## 快速开始
+## Quick Start
 
-### 前置要求
+### Prerequisites
 
-- Docker 和 Docker Compose
-- NVIDIA GPU（支持 CUDA）
-- 足够的磁盘空间（建议至少 10GB）
+- Docker and Docker Compose
+- NVIDIA GPU (with CUDA support)
+- Sufficient disk space (recommended at least 10GB)
 
-### 使用方法
+### Usage
 
-1. **构建并运行容器**：
+1. **Build and run the container**:
 ```bash
 docker compose up rlbench-trajectory
 ```
 
-2. **配置参数**（可选）：
-可以通过环境变量配置 RLBench 参数：
-- `RLBENCH_SAVE_PATH`: 轨迹保存路径（默认：`/workspace/data/rlbench_trajectories`）
-- `RLBENCH_TASKS`: 任务名称（默认：`reach_target`）
-- `RLBENCH_IMAGE_WIDTH`: 图像宽度（默认：`128`）
-- `RLBENCH_IMAGE_HEIGHT`: 图像高度（默认：`128`）
-- `RLBENCH_RENDERER`: 渲染器（默认：`opengl3`）
-- `RLBENCH_PROCESSES`: 进程数（默认：`1`）
-- `RLBENCH_EPISODES`: 每个任务的回合数（默认：`10`）
+2. **Configure parameters** (optional):
+You can configure RLBench parameters through environment variables:
+- `RLBENCH_SAVE_PATH`: Trajectory save path (default: `/workspace/data/rlbench_trajectories`)
+- `RLBENCH_TASKS`: Task name (default: `reach_target`)
+- `RLBENCH_IMAGE_WIDTH`: Image width (default: `128`)
+- `RLBENCH_IMAGE_HEIGHT`: Image height (default: `128`)
+- `RLBENCH_RENDERER`: Renderer (default: `opengl3`)
+- `RLBENCH_PROCESSES`: Number of processes (default: `1`)
+- `RLBENCH_EPISODES`: Number of episodes per task (default: `10`)
 
-示例：
+Example:
 ```bash
 RLBENCH_TASKS=play_jenga RLBENCH_EPISODES=5 docker compose up rlbench-trajectory
 ```
 
-## 项目结构
+## Project Structure
 
 ```
 rlbench/
-├── Dockerfile              # Docker 镜像构建文件
-├── docker-compose.yml      # Docker Compose 配置
-├── software/               # 软件依赖（CoppeliaSim, PyRep 等）
-├── RLBench/                # RLBench 主代码
-├── data/                   # 数据目录（轨迹输出）
-└── checkpoints/            # 模型检查点目录
+├── Dockerfile              # Docker image build file
+├── docker-compose.yml      # Docker Compose configuration
+├── software/               # Software dependencies (CoppeliaSim, PyRep, etc.)
+├── RLBench/                # RLBench main code
+├── data/                   # Data directory (trajectory output)
+└── checkpoints/            # Model checkpoint directory
 ```
 
-## 注意事项
+## Notes
 
-1. **大文件处理**：`software/` 目录包含 CoppeliaSim 等大型软件包，如果使用 Git LFS，请确保配置正确。
+1. **Large File Handling**: The `software/` directory contains large software packages such as CoppeliaSim. If using Git LFS, please ensure proper configuration.
 
-2. **GPU 支持**：确保 Docker 已配置 NVIDIA 运行时支持。
+2. **GPU Support**: Ensure Docker is configured with NVIDIA runtime support.
 
-3. **Xvfb 虚拟显示**：容器内自动启动 Xvfb 虚拟显示器，无需物理显示器。
+3. **Xvfb Virtual Display**: The container automatically starts an Xvfb virtual display, no physical display is required.
 
-## 许可证
+## License
 
-请参考各子项目的许可证文件。
-
+Please refer to the license files of each sub-project.

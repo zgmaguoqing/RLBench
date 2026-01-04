@@ -1,0 +1,36 @@
+# 排除 Docker 相关文件
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# 排除文档
+*.md
+!README.md
+
+# 排除下载脚本（构建时不需要）
+download_software.sh
+
+# 排除数据目录（运行时通过 volume 挂载）
+data/
+checkpoints/
+
+# 排除 software 目录（运行时通过 volume 挂载，但构建时需要）
+# 注意：如果 software 不在构建上下文中，需要从 volume 挂载
+
+# 排除 Git 相关
+.git/
+.gitignore
+
+# 排除 Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# 排除测试和示例（可选，如果需要可以保留）
+# tests/
+# examples/
+# tutorials/
+
